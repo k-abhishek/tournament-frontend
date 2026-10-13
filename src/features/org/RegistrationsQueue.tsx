@@ -1,0 +1,1 @@
+export default function RegistrationsQueue() { return <div>Registrations</div>; }

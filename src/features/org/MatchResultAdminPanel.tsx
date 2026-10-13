@@ -1,0 +1,1 @@
+export default function MatchResultAdminPanel() { return <div>Match Admin</div>; }

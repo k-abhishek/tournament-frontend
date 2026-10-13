@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #050505;
+  --color-surface: #111111;
+  --color-line: #222222;
+  --color-fog: #888888;
+  --color-snow: #FAFAFA;
+  --color-ember: #FF5C00;
+  --color-cyan: #00F0FF;
+  --color-lime: #CCFF00;
+
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-snow);
+  --color-border: var(--color-line);
+  --color-muted: var(--color-fog);
+  --color-primary: var(--color-ember);
+  --color-primary-foreground: var(--color-ink);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Anton', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+}
+
+@layer utilities {
+  .panel-surface {
+    @apply bg-surface border border-line rounded-lg shadow-sm;
+  }
+  
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  
+  .eyebrow {
+    @apply font-mono text-[0.65rem] uppercase tracking-widest text-fog font-semibold;
+  }
+}

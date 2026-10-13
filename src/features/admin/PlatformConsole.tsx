@@ -1,0 +1,1 @@
+export default function PlatformConsole() { return <div>Platform Console</div>; }

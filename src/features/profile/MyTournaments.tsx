@@ -1,0 +1,1 @@
+export default function MyTournaments() { return <div>My Tournaments</div>; }
