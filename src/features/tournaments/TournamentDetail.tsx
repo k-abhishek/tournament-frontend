@@ -33,7 +33,6 @@ export default function TournamentDetail() {
         fullScreen={false}
         message="LOADING TOURNAMENT DATA"
         subMessage="FETCHING BRACKETS & PARTICIPANTS..."
-        className="min-h-[420px]"
       />
     );
   }

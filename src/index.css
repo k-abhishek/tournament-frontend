@@ -32,7 +32,7 @@
   --color-ring: var(--color-ember);
 
   --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
-  --font-display: 'Anton', system-ui, sans-serif;
+  --font-display: 'Geist', 'Inter', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
 
   --radius-sm: 0.125rem;
@@ -55,7 +55,7 @@
   
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 400;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
