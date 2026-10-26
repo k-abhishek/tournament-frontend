@@ -6,6 +6,7 @@ import {
   Trophy,
   User,
   ShieldAlert,
+  Swords,
 } from "lucide-react";
 
 export default function DashboardLayout() {
@@ -25,6 +26,11 @@ export default function DashboardLayout() {
       label: "Explore Tournaments",
       icon: Trophy,
       exact: true,
+    },
+    {
+      to: "/dashboard/my-teams",
+      label: "My Teams & Invites",
+      icon: Swords,
     },
     { to: "/dashboard/profile", label: "Profile", icon: User },
     ...(isPlatformAdmin

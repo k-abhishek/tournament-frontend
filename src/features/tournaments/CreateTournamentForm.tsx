@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import { useGames, useCreateTournament } from '@/hooks/useTournaments';
-import { Trophy, Calendar, Users, Shield, ArrowLeft, Gamepad2, Award } from 'lucide-react';
+import { Trophy, Calendar, Users, Shield, ArrowLeft, Gamepad2, Award, UserCheck } from 'lucide-react';
 
 // shadcn UI components
 import { Button } from '@/components/ui/button';
@@ -20,8 +21,19 @@ import { DateTimePicker } from '@/components/ui/date-time-picker';
 
 export default function CreateTournamentForm() {
   const navigate = useNavigate();
+  const { user } = useUser();
   const { data: gamesData, isLoading: gamesLoading } = useGames();
   const createMutation = useCreateTournament();
+
+  const suggestedOrganizerName =
+    user?.fullName ||
+    user?.username ||
+    (user?.primaryEmailAddress?.emailAddress
+      ? user.primaryEmailAddress.emailAddress.split('@')[0]
+      : '');
+
+  const [organizerNameInput, setOrganizerNameInput] = useState<string | null>(null);
+  const organizerName = organizerNameInput !== null ? organizerNameInput : suggestedOrganizerName;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -51,14 +63,21 @@ export default function CreateTournamentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.gameId || !formData.startDate) {
-      alert('Please fill in Tournament Name, Game, and Start Date.');
+    if (
+      !formData.name.trim() ||
+      !organizerName.trim() ||
+      !formData.gameId ||
+      !formData.startDate
+    ) {
+      alert('Please fill in Tournament Title, Organizer Name, Game, and Start Date.');
       return;
     }
 
     try {
       const result = await createMutation.mutateAsync({
         ...formData,
+        name: formData.name.trim(),
+        organizerName: organizerName.trim(),
         maxParticipants: Number(formData.maxParticipants),
         teamSize: formData.isTeamBased ? Number(formData.teamSize) : 1,
       });
@@ -111,7 +130,7 @@ export default function CreateTournamentForm() {
               <Gamepad2 size={16} className="text-ember" />
               General Information
             </CardTitle>
-            <CardDescription>Primary identity, game title, and public details.</CardDescription>
+            <CardDescription>Primary identity, host branding, game title, and public details.</CardDescription>
           </CardHeader>
 
           <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -125,6 +144,25 @@ export default function CreateTournamentForm() {
                 onChange={(e) => handleFieldChange('name', e.target.value)}
                 placeholder="e.g. Winter Valorant Championship 2026"
               />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-xs font-mono uppercase text-fog block">
+                Organizer Name / Host Identity <span className="text-ember">*</span>
+              </label>
+              <div className="relative">
+                <Input
+                  required
+                  value={organizerName}
+                  onChange={(e) => setOrganizerNameInput(e.target.value)}
+                  placeholder="e.g. Apex Esports / Nexus Arena / Alex Mercer"
+                  className="pl-9"
+                />
+                <UserCheck size={16} className="absolute left-3 top-2.5 text-fog" />
+              </div>
+              <p className="text-[11px] font-mono text-fog">
+                Mandatory organizer identity displayed across tournament cards, brackets, and broadcast banners.
+              </p>
             </div>
 
             <div className="space-y-2">

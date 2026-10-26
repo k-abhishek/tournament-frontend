@@ -10,16 +10,25 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow hover:bg-primary/90 font-display uppercase tracking-wider",
+        primary:
+          "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 font-display uppercase tracking-wider",
+        // Theme-derived action variants (resolves directly from central primary theme tokens)
         ember:
-          "bg-ember text-ink font-display uppercase tracking-wide hover:bg-ember/90 shadow-md shadow-ember/20",
+          "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
+        rose:
+          "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
+        emerald:
+          "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
         destructive:
           "bg-destructive/20 text-destructive border border-destructive/40 hover:bg-destructive hover:text-white shadow-sm",
         outline:
-          "border border-line bg-transparent hover:bg-surface hover:text-snow text-fog",
+          "border border-line bg-transparent hover:bg-surface hover:text-snow text-fog hover:border-primary/40",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground text-fog hover:text-snow",
-        link: "text-primary underline-offset-4 hover:underline",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground text-fog hover:text-snow",
+        link:
+          "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",

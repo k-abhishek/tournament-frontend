@@ -1,6 +1,14 @@
-import { useParams, Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
-import { useTournament, useRegisterForTournament } from '@/hooks/useTournaments';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import {
+  useTournament,
+  useBracket,
+  useMyTeamInTournament,
+  useTournamentTeams,
+  useRemoveTeamMember,
+  useDisbandTeam,
+} from "@/hooks/useTournaments";
 import {
   Users,
   Shield,
@@ -9,23 +17,86 @@ import {
   FileText,
   AlertCircle,
   Crown,
-} from 'lucide-react';
+  GitFork,
+  Swords,
+} from "lucide-react";
 
 // shadcn UI components
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { LoadingScreen } from '@/components/custom/loading-screen';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LoadingScreen } from "@/components/custom/loading-screen";
+import { TournamentBracket } from "@/components/custom/TournamentBracket";
+
+// Decomposed Sub-components
+import { TournamentHeroBanner } from "./detail/TournamentHeroBanner";
+import { TournamentOverviewTab } from "./detail/TournamentOverviewTab";
+import { TournamentTeamsTab } from "./detail/TournamentTeamsTab";
+import { TournamentStaffTab } from "./detail/TournamentStaffTab";
+import { TournamentMyTeamTab } from "./detail/TournamentMyTeamTab";
 
 export default function TournamentDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useUser();
   const { data, isLoading, error } = useTournament(slug);
-  const registerMutation = useRegisterForTournament(data?.tournament?.id);
+  const { data: bracketData } = useBracket(slug);
 
   const tournament = data?.tournament;
+  const bracketMatches = bracketData?.bracket || [];
+
+  // My team in this tournament
+  const { data: myTeamData, refetch: refetchMyTeam } = useMyTeamInTournament(tournament?.id);
+  const myTeam = myTeamData?.team;
+  const myMembership = myTeamData?.membership;
+
+  // Registered teams in this tournament
+  const { data: teamsData } = useTournamentTeams(tournament?.id);
+  const registeredTeams = teamsData?.teams || [];
+
+  const disbandTeam = useDisbandTeam(tournament?.id ?? "");
+  const removeMyself = useRemoveTeamMember(tournament?.id ?? "", myTeam?.id ?? "");
+  const kickMember = useRemoveTeamMember(tournament?.id ?? "", myTeam?.id ?? "");
+
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  useEffect(() => {
+    if (tournament?.status === "ONGOING" && bracketMatches.length > 0) {
+      setActiveTab("bracket");
+    }
+  }, [tournament?.status, bracketMatches.length]);
+
+  const isCaptain =
+    myMembership?.role === "CAPTAIN" ||
+    myTeam?.captainId === user?.id ||
+    myTeam?.captain?.clerkId === user?.id ||
+    myTeam?.members?.some(
+      (m: any) =>
+        (m.userId === user?.id ||
+          m.user?.clerkId === user?.id ||
+          m.user?.id === user?.id ||
+          (user?.username && m.user?.username === user?.username)) &&
+        m.role === "CAPTAIN"
+    );
+  const isAlreadyRegistered = Boolean(myTeam);
+
+  const handleDisband = async () => {
+    if (!window.confirm("Disband team? This will cancel your tournament entry.")) return;
+    await disbandTeam.mutateAsync(myTeam?.id);
+    refetchMyTeam();
+  };
+
+  const handleWithdraw = async () => {
+    if (!window.confirm("Withdraw your candidacy from this team?")) return;
+    await removeMyself.mutateAsync(user?.id ?? "");
+    refetchMyTeam();
+  };
+
+  const handleKickMember = async (userId: string, username: string) => {
+    if (!window.confirm(`Remove @${username} from the team?`)) return;
+    await kickMember.mutateAsync(userId);
+    refetchMyTeam();
+  };
 
   if (isLoading) {
     return (
@@ -50,7 +121,7 @@ export default function TournamentDetail() {
     );
   }
 
-  const currentUsername = user?.username || user?.primaryEmailAddress?.emailAddress?.split('@')[0];
+  const currentUsername = user?.username || user?.primaryEmailAddress?.emailAddress?.split("@")[0];
   const currentEmail = user?.primaryEmailAddress?.emailAddress;
 
   const isCreator =
@@ -68,7 +139,7 @@ export default function TournamentDetail() {
       m.user?.email === currentEmail,
   );
 
-  const canManage = isCreator || isModerator || user?.publicMetadata?.role === 'platform_admin';
+  const canManage = isCreator || isModerator || user?.publicMetadata?.role === "platform_admin";
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
@@ -92,84 +163,30 @@ export default function TournamentDetail() {
       </div>
 
       {/* Hero Banner Card */}
-      <Card className="overflow-hidden relative">
-        {tournament.bannerUrl ? (
-          <div className="h-48 w-full overflow-hidden relative">
-            <img src={tournament.bannerUrl} alt={tournament.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-28 bg-gradient-to-r from-ember/20 via-cyan/10 to-surface border-b border-line" />
-        )}
+      <TournamentHeroBanner
+        tournament={tournament}
+        isAlreadyRegistered={isAlreadyRegistered}
+        isCaptain={isCaptain}
+      />
 
-        <CardContent className="p-6 md:p-8 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{tournament.game?.name || 'Esports'}</Badge>
-                <Badge
-                  variant={
-                    tournament.status === 'REGISTRATION_OPEN'
-                      ? 'lime'
-                      : tournament.status === 'ONGOING'
-                      ? 'cyan'
-                      : tournament.status === 'COMPLETED'
-                      ? 'outline'
-                      : 'ember'
-                  }
-                >
-                  {tournament.status}
-                </Badge>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-display text-snow tracking-wide">{tournament.name}</h1>
-            </div>
-
-            {/* Quick Registration Button */}
-            {tournament.status === 'REGISTRATION_OPEN' && (
-              <Button
-                variant="default"
-                size="lg"
-                onClick={() => registerMutation.mutate()}
-                disabled={registerMutation.isPending}
-                className="bg-lime text-ink hover:bg-lime/90 font-display"
-              >
-                {registerMutation.isPending ? 'Registering...' : 'Register Now'}
-              </Button>
-            )}
-          </div>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-line">
-            <div className="space-y-1">
-              <span className="text-xs font-mono text-fog uppercase block">Format</span>
-              <p className="text-sm font-semibold text-snow">{tournament.format?.replace('_', ' ')}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs font-mono text-fog uppercase block">Prize Pool</span>
-              <p className="text-sm font-semibold text-ember">{tournament.prizePool || 'Glory & Prestige'}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs font-mono text-fog uppercase block">Slots / Teams</span>
-              <p className="text-sm font-semibold text-snow">
-                {tournament._count?.participants || 0} / {tournament.maxParticipants}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs font-mono text-fog uppercase block">Start Date</span>
-              <p className="text-sm font-semibold text-snow">
-                {new Date(tournament.startDate).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* shadcn Tabs Container */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      {/* Tabs Container */}
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <FileText size={15} />
             Overview
+          </TabsTrigger>
+          <TabsTrigger value="teams" className="flex items-center gap-2">
+            <Swords size={15} />
+            Teams ({registeredTeams.length})
+          </TabsTrigger>
+          <TabsTrigger value="bracket" className="flex items-center gap-2">
+            <GitFork size={15} />
+            Bracket ({bracketMatches.length})
           </TabsTrigger>
           <TabsTrigger value="rules" className="flex items-center gap-2">
             <Shield size={15} />
@@ -179,65 +196,69 @@ export default function TournamentDetail() {
             <Users size={15} />
             Staff & Moderators ({tournament.moderators?.length || 0})
           </TabsTrigger>
+          {isAlreadyRegistered && (
+            <TabsTrigger value="my-team" className="flex items-center gap-2">
+              <Crown size={15} className="text-ember" />
+              My Team
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Tab 1: Overview */}
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Tournament Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-fog whitespace-pre-line leading-relaxed">
-                  {tournament.description || 'No description provided for this tournament.'}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm uppercase tracking-wider flex items-center gap-1.5">
-                  <Crown size={15} className="text-ember" />
-                  Tournament Admin
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded bg-background border border-line">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={tournament.organizer?.avatarUrl} alt="Organizer" />
-                    <AvatarFallback className="bg-ember/20 text-ember">
-                      {(tournament.organizer?.displayName || tournament.organizer?.username || 'A')[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-snow truncate">
-                      {tournament.organizer?.displayName || `@${tournament.organizer?.username}`}
-                    </p>
-                    <p className="text-xs font-mono text-ember font-semibold">Tournament Creator</p>
-                  </div>
-                </div>
-
-                {tournament.moderators?.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-line">
-                    <span className="text-xs font-mono text-fog uppercase block">Appointed Moderators</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {tournament.moderators.map((m: any) => (
-                        <Badge key={m.id} variant="secondary" className="gap-1 py-1">
-                          <Shield size={11} className="text-cyan" />
-                          @{m.user?.username}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <TournamentOverviewTab
+            tournament={tournament}
+            myTeam={myTeam}
+            isAlreadyRegistered={isAlreadyRegistered}
+            isCaptain={isCaptain}
+            onDisband={handleDisband}
+            onWithdraw={handleWithdraw}
+            isDisbanding={disbandTeam.isPending}
+            isWithdrawing={removeMyself.isPending}
+            onSwitchToTeamTab={() => setActiveTab("my-team")}
+          />
         </TabsContent>
 
-        {/* Tab 2: Rules */}
+        {/* Tab 2: Registered Teams & Rosters */}
+        <TabsContent value="teams">
+          <TournamentTeamsTab
+            tournament={tournament}
+            myTeam={myTeam}
+            currentUserId={user?.id}
+          />
+        </TabsContent>
+
+        {/* Tab 3: Bracket */}
+        <TabsContent value="bracket">
+          <Card className="p-6 bg-surface border-line space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl font-display text-snow">
+                  <GitFork size={18} className="text-ember" />
+                  Tournament Bracket & Fixtures
+                </CardTitle>
+                <CardDescription>
+                  Real-time match progression, scores, seeds, and championship pathways.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="font-mono text-xs">
+                  {tournament.format?.replace("_", " ")}
+                </Badge>
+                {tournament.status === "ONGOING" && (
+                  <Badge variant="cyan" className="font-mono text-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse mr-1" />
+                    LIVE TOURNAMENT
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <TournamentBracket matches={bracketMatches} tournamentName={tournament.name} />
+          </Card>
+        </TabsContent>
+
+        {/* Tab 3: Rules */}
         <TabsContent value="rules">
           <Card>
             <CardHeader>
@@ -245,68 +266,34 @@ export default function TournamentDetail() {
             </CardHeader>
             <CardContent>
               <div className="text-sm text-fog whitespace-pre-line leading-relaxed font-mono bg-background p-4 rounded border border-line">
-                {tournament.rules || 'Standard competitive esports guidelines apply. Contact tournament moderators for disputes.'}
+                {tournament.rules ||
+                  "Standard competitive esports guidelines apply. Contact tournament moderators for disputes."}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab 3: Moderators & Staff */}
+        {/* Tab 4: Moderators & Staff */}
         <TabsContent value="moderators">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between border-b border-line pb-4">
-              <div>
-                <CardTitle>Tournament Staff</CardTitle>
-                <CardDescription>
-                  Organizers and moderators responsible for match approvals, dispute resolution, and scheduling.
-                </CardDescription>
-              </div>
-              {canManage && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/dashboard/tournaments/${tournament.slug}/manage`}>
-                    Edit Staff in Manage
-                  </Link>
-                </Button>
-              )}
-            </CardHeader>
-
-            <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Creator Card */}
-              <div className="flex items-center gap-3 p-4 rounded bg-background border border-ember/20">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={tournament.organizer?.avatarUrl} alt="Organizer" />
-                  <AvatarFallback className="bg-ember/20 text-ember">
-                    {(tournament.organizer?.displayName || tournament.organizer?.username || 'A')[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-semibold text-snow">
-                    {tournament.organizer?.displayName || `@${tournament.organizer?.username}`}
-                  </p>
-                  <p className="text-xs font-mono text-ember font-semibold">Tournament Admin (Creator)</p>
-                </div>
-              </div>
-
-              {/* Moderators List */}
-              {tournament.moderators?.map((mod: any) => (
-                <div key={mod.id} className="flex items-center gap-3 p-4 rounded bg-background border border-line">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={mod.user?.avatarUrl} alt={mod.user?.username} />
-                    <AvatarFallback className="bg-cyan/20 text-cyan">
-                      {(mod.user?.displayName || mod.user?.username || 'M')[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-semibold text-snow">
-                      {mod.user?.displayName || `@${mod.user?.username}`}
-                    </p>
-                    <p className="text-xs font-mono text-cyan">Tournament Moderator</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <TournamentStaffTab tournament={tournament} canManage={canManage} />
         </TabsContent>
+
+        {/* Tab 5: My Team */}
+        {isAlreadyRegistered && myTeam && (
+          <TabsContent value="my-team">
+            <TournamentMyTeamTab
+              tournament={tournament}
+              myTeam={myTeam}
+              isCaptain={isCaptain}
+              onDisband={handleDisband}
+              onWithdraw={handleWithdraw}
+              onKickMember={handleKickMember}
+              isDisbanding={disbandTeam.isPending}
+              isWithdrawing={removeMyself.isPending}
+              refetchMyTeam={refetchMyTeam}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

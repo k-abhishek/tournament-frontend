@@ -25,6 +25,9 @@ const TournamentManage = lazy(
 const CreateTournamentForm = lazy(
   () => import("@/features/tournaments/CreateTournamentForm"),
 );
+const RegisterTeamPage = lazy(
+  () => import("@/features/tournaments/RegisterTeamPage"),
+);
 const UpdateProfile = lazy(() => import("@/features/profile/UpdateProfile"));
 const MyTeams = lazy(() => import("@/features/profile/MyTeams"));
 const PlatformConsole = lazy(() => import("@/features/admin/PlatformConsole"));
@@ -69,6 +72,10 @@ export default function App() {
             <Route index element={<MyTournaments />} />
             <Route path="tournaments" element={<TournamentExplorer />} />
             <Route path="tournaments/new" element={<CreateTournamentForm />} />
+            <Route
+              path="tournaments/:slug/register"
+              element={<RegisterTeamPage />}
+            />
             <Route path="tournaments/:slug" element={<TournamentDetail />} />
             <Route
               path="tournaments/:slug/manage"

@@ -9,14 +9,27 @@ const badgeVariants = cva(
       variant: {
         default:
           "border border-line bg-surface text-snow",
+        primary:
+          "border border-primary/30 bg-primary/10 text-primary",
+        "primary-solid":
+          "border border-transparent bg-primary text-primary-foreground font-bold shadow-sm",
         secondary:
           "border border-transparent bg-secondary text-secondary-foreground",
         destructive:
           "border border-destructive/20 bg-destructive/10 text-destructive",
-        outline: "border border-line text-fog",
-        ember: "border border-ember/25 bg-ember/10 text-ember",
-        lime: "border border-lime/25 bg-lime/10 text-lime",
-        cyan: "border border-cyan/25 bg-cyan/10 text-cyan",
+        outline:
+          "border border-line text-fog",
+        // Theme-derived action badges (resolves directly from central primary theme tokens)
+        rose:
+          "border border-primary/30 bg-primary/10 text-primary",
+        ember:
+          "border border-primary/30 bg-primary/10 text-primary",
+        emerald:
+          "border border-primary/30 bg-primary/10 text-primary",
+        lime:
+          "border border-primary/30 bg-primary/10 text-primary",
+        cyan:
+          "border border-cyan/25 bg-cyan/10 text-cyan",
       },
     },
     defaultVariants: {

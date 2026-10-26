@@ -180,7 +180,11 @@ export default function TournamentExplorer() {
                           Prize
                         </span>
                         <span className="text-ember font-semibold">
-                          {t.prizePool || "Glory"}
+                          {t.prizePool
+                            ? String(t.prizePool).startsWith("$")
+                              ? t.prizePool
+                              : `$${Number(t.prizePool).toLocaleString()}`
+                            : "Glory"}
                         </span>
                       </div>
                     </div>

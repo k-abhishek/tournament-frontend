@@ -66,9 +66,13 @@ export const userApi = {
     api.get(`/users/${username}/profile`).then((r) => r.data),
   updateMe: (payload: Record<string, unknown>) =>
     api.patch('/users/me', payload).then((r) => r.data),
+  getMyTeams: () =>
+    api.get('/users/me/teams').then((r) => r.data),
+  getMyInvites: () =>
+    api.get('/users/me/invites').then((r) => r.data),
 };
 
-// ── Teams ─────────────────────────────────────────────────────────────
+// ── Teams (generic) ────────────────────────────────────────────────────
 export const teamApi = {
   create: (payload: Record<string, unknown>) =>
     api.post('/teams', payload).then((r) => r.data),
@@ -80,6 +84,37 @@ export const teamApi = {
     api.post(`/teams/${id}/invite`, { userId }).then((r) => r.data),
   leave: (id: string) =>
     api.delete(`/teams/${id}/leave`).then((r) => r.data),
+};
+
+// ── Tournament-Scoped Team Registration ───────────────────────────────
+export const tournamentTeamApi = {
+  /** List all teams registered in a tournament */
+  list: (tournamentId: string) =>
+    api.get(`/tournaments/${tournamentId}/teams`).then((r) => r.data),
+
+  /** Get the current user's team in a specific tournament */
+  getMyTeam: (tournamentId: string) =>
+    api.get(`/tournaments/${tournamentId}/teams/mine`).then((r) => r.data),
+
+  /** Register a new team for a tournament (caller becomes CAPTAIN) */
+  create: (tournamentId: string, payload: { name: string; logoUrl?: string }) =>
+    api.post(`/tournaments/${tournamentId}/teams`, payload).then((r) => r.data),
+
+  /** Captain invites a user to the team */
+  inviteMember: (tournamentId: string, teamId: string, userId: string) =>
+    api.post(`/tournaments/${tournamentId}/teams/${teamId}/members`, { userId }).then((r) => r.data),
+
+  /** Invited member accepts or declines their invitation */
+  respondToInvite: (tournamentId: string, teamId: string, action: 'accept' | 'decline') =>
+    api.patch(`/tournaments/${tournamentId}/teams/${teamId}/members/me`, { action }).then((r) => r.data),
+
+  /** Remove a member (member withdraws self, or captain kicks) */
+  removeMember: (tournamentId: string, teamId: string, userId: string) =>
+    api.delete(`/tournaments/${tournamentId}/teams/${teamId}/members/${userId}`).then((r) => r.data),
+
+  /** Captain disbands the whole team */
+  disband: (tournamentId: string, teamId: string) =>
+    api.delete(`/tournaments/${tournamentId}/teams/${teamId}`).then((r) => r.data),
 };
 
 // ── Matches ───────────────────────────────────────────────────────────

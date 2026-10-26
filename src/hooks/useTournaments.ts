@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   tournamentApi,
+  tournamentTeamApi,
   gameApi,
   userApi,
   TournamentListParams,
@@ -27,7 +28,7 @@ export const invalidateQueries = (keyPrefix: string) => {
  * Generic Axios Query Hook
  * Replaces @tanstack/react-query useQuery with native React state & Axios.
  */
-function useAxiosQuery<T>(
+export function useAxiosQuery<T>(
   cacheKey: string,
   fetchFn: () => Promise<T>,
   enabled: boolean = true
@@ -319,3 +320,230 @@ export const useUsers = (params?: UserListParams) => {
   const fetchFn = useCallback(() => userApi.list(params), [paramsKey]);
   return useAxiosQuery(`users:${paramsKey}`, fetchFn, true);
 };
+
+// ── Tournament-Scoped Team Registration ──────────────────────────────────────
+
+/** Query: teams registered in a tournament */
+export const useTournamentTeams = (tournamentId?: string) => {
+  const fetchFn = useCallback(() => tournamentTeamApi.list(tournamentId!), [tournamentId]);
+  return useAxiosQuery(`teams:${tournamentId}`, fetchFn, Boolean(tournamentId));
+};
+
+/** Query: current user's team in a specific tournament */
+export const useMyTeamInTournament = (tournamentId?: string) => {
+  const fetchFn = useCallback(() => tournamentTeamApi.getMyTeam(tournamentId!), [tournamentId]);
+  return useAxiosQuery(`my-team:${tournamentId}`, fetchFn, Boolean(tournamentId));
+};
+
+/** Mutation: register a new team for a tournament */
+export const useRegisterTeam = (tournamentId: string) => {
+  return useAxiosMutation(
+    (payload: { name: string; logoUrl?: string }) => tournamentTeamApi.create(tournamentId, payload),
+    {
+      onSuccess: () => {
+        invalidateQueries(`teams:${tournamentId}`);
+        invalidateQueries(`my-team:${tournamentId}`);
+        toast.success('Team registered successfully!');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error ?? 'Failed to register team');
+      },
+    }
+  );
+};
+
+/** Mutation: captain invites a member to the team */
+export const useInviteTeamMember = (tournamentId: string, teamId: string) => {
+  return useAxiosMutation(
+    (userId: string) => tournamentTeamApi.inviteMember(tournamentId, teamId, userId),
+    {
+      onSuccess: () => {
+        invalidateQueries(`my-team:${tournamentId}`);
+        invalidateQueries(`teams:${tournamentId}`);
+        toast.success('Invitation sent!');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error ?? 'Failed to send invitation');
+      },
+    }
+  );
+};
+
+/** Mutation: respond to a team invitation */
+export const useRespondToInvite = (tournamentId: string, teamId: string) => {
+  return useAxiosMutation(
+    (action: 'accept' | 'decline') => tournamentTeamApi.respondToInvite(tournamentId, teamId, action),
+    {
+      onSuccess: (_data, action) => {
+        invalidateQueries(`my-team:${tournamentId}`);
+        invalidateQueries(`teams:${tournamentId}`);
+        invalidateQueries('pending-invites');
+        toast.success(action === 'accept' ? 'Joined the team!' : 'Invitation declined');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error ?? 'Failed to respond to invitation');
+      },
+    }
+  );
+};
+
+/** Mutation: remove a member (self withdraw or captain kick) */
+export const useRemoveTeamMember = (tournamentId: string, teamId: string) => {
+  return useAxiosMutation(
+    (userId: string) => tournamentTeamApi.removeMember(tournamentId, teamId, userId),
+    {
+      onSuccess: () => {
+        invalidateQueries(`my-team:${tournamentId}`);
+        invalidateQueries(`teams:${tournamentId}`);
+        toast.success('Member removed');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error ?? 'Failed to remove member');
+      },
+    }
+  );
+};
+
+/** Mutation: captain disbands the entire team */
+export const useDisbandTeam = (tournamentId: string) => {
+  return useAxiosMutation(
+    (teamId: string) => tournamentTeamApi.disband(tournamentId, teamId),
+    {
+      onSuccess: () => {
+        invalidateQueries(`my-team:${tournamentId}`);
+        invalidateQueries(`teams:${tournamentId}`);
+        toast.success('Team disbanded');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error ?? 'Failed to disband team');
+      },
+    }
+  );
+};
+
+// ── User Registrations & Pending Invites Queries ─────────────────────────────
+
+/** Query: all team memberships for the current user across tournaments */
+export const useMyTeamMemberships = () => {
+  const fetchFn = useCallback(() => userApi.getMyTeams(), []);
+  return useAxiosQuery('my-team-memberships', fetchFn, true);
+};
+
+/** Query: all incoming pending team invitations for current user */
+export const useMyPendingInvites = () => {
+  const fetchFn = useCallback(() => userApi.getMyInvites(), []);
+  return useAxiosQuery('pending-invites', fetchFn, true);
+};
+
+// ── Unified Team Registration Hook ───────────────────────────────────────────
+
+/**
+ * Unified Hook for Tournament Team Registration & Management.
+ * Exposes methods: createTeam, inviteMember, getMyTeam, respondToInvite, removeMember, disbandTeam
+ */
+export const useTeamRegistration = (tournamentId?: string) => {
+  const {
+    data: myTeamData,
+    isLoading: isLoadingMyTeam,
+    error,
+    refetch: getMyTeam,
+  } = useMyTeamInTournament(tournamentId);
+
+  const registerMutation = useRegisterTeam(tournamentId || '');
+  const disbandMutation = useDisbandTeam(tournamentId || '');
+
+  const myTeam = myTeamData?.team ?? null;
+  const myMembership = myTeamData?.membership ?? null;
+  const isCaptain = myMembership?.role === 'CAPTAIN';
+  const isRegistered = Boolean(myTeam);
+
+  const createTeam = useCallback(
+    async (payload: { name: string; logoUrl?: string }) => {
+      const res = await registerMutation.mutateAsync(payload);
+      invalidateQueries('my-team-memberships');
+      return res;
+    },
+    [registerMutation]
+  );
+
+  const inviteMember = useCallback(
+    async (userId: string, targetTeamId?: string) => {
+      const activeTeamId = targetTeamId || myTeam?.id;
+      if (!tournamentId || !activeTeamId) {
+        throw new Error('Tournament ID and Team ID are required to invite a member');
+      }
+      const res = await tournamentTeamApi.inviteMember(tournamentId, activeTeamId, userId);
+      invalidateQueries(`my-team:${tournamentId}`);
+      invalidateQueries(`teams:${tournamentId}`);
+      invalidateQueries('my-team-memberships');
+      toast.success('Invitation sent!');
+      return res;
+    },
+    [tournamentId, myTeam?.id]
+  );
+
+  const respondToInvite = useCallback(
+    async (action: 'accept' | 'decline', targetTeamId?: string) => {
+      const activeTeamId = targetTeamId || myTeam?.id;
+      if (!tournamentId || !activeTeamId) {
+        throw new Error('Tournament ID and Team ID are required');
+      }
+      const res = await tournamentTeamApi.respondToInvite(tournamentId, activeTeamId, action);
+      invalidateQueries(`my-team:${tournamentId}`);
+      invalidateQueries(`teams:${tournamentId}`);
+      invalidateQueries('my-team-memberships');
+      invalidateQueries('pending-invites');
+      toast.success(action === 'accept' ? 'Joined the team!' : 'Invitation declined');
+      return res;
+    },
+    [tournamentId, myTeam?.id]
+  );
+
+  const removeMember = useCallback(
+    async (userId: string, targetTeamId?: string) => {
+      const activeTeamId = targetTeamId || myTeam?.id;
+      if (!tournamentId || !activeTeamId) {
+        throw new Error('Tournament ID and Team ID are required');
+      }
+      const res = await tournamentTeamApi.removeMember(tournamentId, activeTeamId, userId);
+      invalidateQueries(`my-team:${tournamentId}`);
+      invalidateQueries(`teams:${tournamentId}`);
+      invalidateQueries('my-team-memberships');
+      toast.success('Member removed');
+      return res;
+    },
+    [tournamentId, myTeam?.id]
+  );
+
+  const disbandTeam = useCallback(
+    async (targetTeamId?: string) => {
+      const activeTeamId = targetTeamId || myTeam?.id;
+      if (!tournamentId || !activeTeamId) {
+        throw new Error('Tournament ID and Team ID are required');
+      }
+      const res = await disbandMutation.mutateAsync(activeTeamId);
+      invalidateQueries('my-team-memberships');
+      return res;
+    },
+    [disbandMutation, tournamentId, myTeam?.id]
+  );
+
+  return {
+    myTeam,
+    myMembership,
+    isCaptain,
+    isRegistered,
+    isLoading: isLoadingMyTeam,
+    error,
+    getMyTeam,
+    refetch: getMyTeam,
+    createTeam,
+    inviteMember,
+    respondToInvite,
+    removeMember,
+    disbandTeam,
+    isCreating: registerMutation.isPending,
+    isDisbanding: disbandMutation.isPending,
+  };
+};
+
