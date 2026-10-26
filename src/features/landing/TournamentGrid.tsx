@@ -253,7 +253,7 @@ export default function TournamentGrid() {
               return (
                 <div
                   key={t.id}
-                  className="panel-surface group hover:-translate-y-1 hover:border-ember/50 hover:shadow-[0_12px_30px_-10px_rgba(255,92,0,0.15)] transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                  className="panel-surface group hover:-translate-y-1 hover:border-ember/50 hover:shadow-[0_12px_30px_-10px_rgba(245,158,11,0.15)] transition-all duration-300 overflow-hidden flex flex-col justify-between"
                 >
                   <div>
                     {/* Banner Image or Stylized Header */}

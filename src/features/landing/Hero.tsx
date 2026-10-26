@@ -66,7 +66,7 @@ export default function Hero() {
             <div className="relative w-1/2">
               {/* Connector from previous round */}
               <div className="absolute -left-8 top-1/2 w-8 h-px bg-line z-0" />
-              <div className="bg-ink border-2 border-ember p-4 flex justify-between items-center relative z-10 shadow-[0_0_15px_rgba(255,92,0,0.2)]">
+              <div className="bg-ink border-2 border-ember p-4 flex justify-between items-center relative z-10 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                 <span className="text-snow font-bold">Cloud9</span>
                 <span className="text-ember text-xl">🏆</span>
               </div>

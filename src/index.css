@@ -1,51 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #080405;
-  --color-surface: #12090b;
-  --color-line: #261418;
-  --color-fog: #9c8388;
-  --color-snow: #fff5f6;
+  --color-ink: #090807;
+  --color-surface: #141210;
+  --color-line: #292420;
+  --color-fog: #a8a199;
+  --color-snow: #fffdfa;
 
-  /* Full Rose Palette (50 -> 950) */
-  --color-rose-50: #fff1f2;
-  --color-rose-100: #ffe4e6;
-  --color-rose-200: #fecdd3;
-  --color-rose-300: #fda4af;
-  --color-rose-400: #fb7185;
-  --color-rose-500: #f43f5e;
-  --color-rose-600: #e11d48;
-  --color-rose-700: #be123c;
-  --color-rose-800: #9f1239;
-  --color-rose-900: #881337;
-  --color-rose-950: #4c0519;
+  /* Full Amber Palette (50 -> 950) from shadcn & Tailwind */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
 
-  /* Primary Brand Mapping: Rose */
-  --color-primary: #f43f5e;
-  --color-primary-foreground: #ffffff;
-  --color-rose: #f43f5e;
-  --color-ember: #f43f5e;
-  --color-lime: #fb7185;
-  --color-cyan: #fda4af;
+  /* Primary Brand Mapping: Amber */
+  --color-primary: #f59e0b;
+  --color-primary-foreground: #090807;
+  --color-amber: #f59e0b;
+  --color-ember: #f59e0b;
+  --color-rose: #f59e0b;
+  --color-lime: #10b981;
+  --color-cyan: #38bdf8;
 
   --color-background: var(--color-ink);
   --color-foreground: var(--color-snow);
   --color-border: var(--color-line);
-  --color-muted: #1c0f13;
+  --color-muted: #1c1815;
   --color-muted-foreground: var(--color-fog);
 
   --color-card: var(--color-surface);
   --color-card-foreground: var(--color-snow);
   --color-popover: var(--color-surface);
   --color-popover-foreground: var(--color-snow);
-  --color-secondary: #1a0d11;
+  --color-secondary: #1c1815;
   --color-secondary-foreground: var(--color-snow);
-  --color-accent: #271319;
+  --color-accent: #26211d;
   --color-accent-foreground: var(--color-snow);
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   --color-input: var(--color-line);
-  --color-ring: #f43f5e;
+  --color-ring: #f59e0b;
 
   --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
   --font-display: 'Geist', 'Inter', system-ui, sans-serif;

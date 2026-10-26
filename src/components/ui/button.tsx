@@ -15,6 +15,8 @@ const buttonVariants = cva(
         // Theme-derived action variants (resolves directly from central primary theme tokens)
         ember:
           "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
+        amber:
+          "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
         rose:
           "bg-primary text-primary-foreground font-display uppercase tracking-wide hover:bg-primary/90 shadow-md shadow-primary/25",
         emerald:

@@ -72,7 +72,7 @@ function FlowCanvasContent({
         ...connection,
         id: `e-${connection.source}-${connection.target}`,
         type: 'smoothstep',
-        style: { stroke: '#ff5c00', strokeWidth: 2, strokeDasharray: '4 4' },
+        style: { stroke: '#f59e0b', strokeWidth: 2, strokeDasharray: '4 4' },
       };
       setBracket(nodes, addEdge(newEdge, edges));
     },
@@ -121,7 +121,7 @@ function FlowCanvasContent({
           className="dark bg-ink"
         >
           {/* Subtle grid points */}
-          <Background color="#27272a" gap={24} size={1} />
+          <Background color="#292420" gap={24} size={1} />
 
           {/* Canvas Bottom-Right MiniMap */}
           <MiniMap

@@ -65,7 +65,7 @@ export const MatchNode: React.FC<NodeProps> = memo(({ data, selected }) => {
         selected
           ? 'ring-2 ring-ember border-ember shadow-lg shadow-ember/10'
           : isLive
-          ? 'border-ember bg-surface shadow-[0_0_20px_rgba(255,92,0,0.18)] ring-1 ring-ember/40'
+          ? 'border-ember bg-surface shadow-[0_0_20px_rgba(245,158,11,0.18)] ring-1 ring-ember/40'
           : isCompleted
           ? 'border-line bg-surface hover:border-line/90 shadow-md'
           : 'border-line/70 bg-surface/80 hover:border-line shadow-sm'

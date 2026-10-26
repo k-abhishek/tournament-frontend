@@ -20,6 +20,8 @@ const badgeVariants = cva(
         outline:
           "border border-line text-fog",
         // Theme-derived action badges (resolves directly from central primary theme tokens)
+        amber:
+          "border border-primary/30 bg-primary/10 text-primary",
         rose:
           "border border-primary/30 bg-primary/10 text-primary",
         ember:

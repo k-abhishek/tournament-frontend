@@ -46,7 +46,7 @@ export function LoadingScreen({
           {/* Outer Pulsing Radar Ring */}
           <div className="absolute w-20 h-20 rounded-full border border-ember/30 animate-ping opacity-25" />
           {/* Counter-rotating border ring */}
-          <div className="w-16 h-16 rounded-lg border-2 border-dashed border-ember/50 flex items-center justify-center animate-spin [animation-duration:8s] bg-ink/60 shadow-[0_0_20px_rgba(255,92,0,0.2)]">
+          <div className="w-16 h-16 rounded-lg border-2 border-dashed border-ember/50 flex items-center justify-center animate-spin [animation-duration:8s] bg-ink/60 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
             <div className="w-10 h-10 rounded-md border border-line/80 bg-surface flex items-center justify-center">
               <Network size={18} className="text-ember animate-pulse" />
             </div>

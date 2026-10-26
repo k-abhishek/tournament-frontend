@@ -149,10 +149,10 @@ export function buildBracketGraph(
       );
 
       const edgeColor = reachedTarget
-        ? '#84cc16' // Lime for victorious advancement
+        ? '#10b981' // Emerald for victorious advancement
         : isSourceLive
-        ? '#ff5c00' // Ember for active live feeder
-        : '#27272a'; // Line zinc-800 for scheduled
+        ? '#f59e0b' // Amber for active live feeder
+        : '#292420'; // Line for scheduled
 
       edges.push({
         id: `e-${sourceId}-${targetMatchId}`,

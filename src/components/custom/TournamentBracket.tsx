@@ -244,7 +244,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                           canManage ? 'cursor-pointer hover:border-ember/80' : ''
                         } ${
                           isLive
-                            ? 'border-ember bg-surface shadow-[0_0_15px_rgba(255,92,0,0.15)] ring-1 ring-ember/30'
+                            ? 'border-ember bg-surface shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-ember/30'
                             : isCompleted
                             ? 'border-line bg-surface hover:border-line/90'
                             : 'border-line/60 bg-surface/60 opacity-85'
