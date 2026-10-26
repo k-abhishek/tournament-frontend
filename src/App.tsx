@@ -1,3 +1,4 @@
+import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -60,6 +61,18 @@ export default function App() {
                 <Navigate to="/dashboard" replace />
               )
             }
+          />
+          <Route
+            path="/sign-in/sso-callback"
+            element={<AuthenticateWithRedirectCallback />}
+          />
+          <Route
+            path="/sign-up/sso-callback"
+            element={<AuthenticateWithRedirectCallback />}
+          />
+          <Route
+            path="/sso-callback"
+            element={<AuthenticateWithRedirectCallback />}
           />
           <Route path="/sign-in/*" element={<SignInPage />} />
           <Route path="/sign-up/*" element={<SignUpPage />} />
