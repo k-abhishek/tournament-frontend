@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import {
   useTournament,
+  useBracket,
   useUpdateTournament,
   useDeleteTournament,
   useAddModerator,
@@ -18,8 +19,10 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertTriangle,
+  GitFork,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { TournamentBracket } from "@/components/custom/TournamentBracket";
 
 // shadcn UI components
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,8 @@ export default function TournamentManage() {
 
   const { data, isLoading, error } = useTournament(slug);
   const tournament = data?.tournament;
+  const { data: bracketData, refetch: refetchBracket } = useBracket(slug);
+  const bracketMatches = bracketData?.bracket || [];
 
   const updateMutation = useUpdateTournament();
   const deleteMutation = useDeleteTournament();
@@ -326,6 +331,10 @@ export default function TournamentManage() {
             <Settings size={15} />
             Description & Settings
           </TabsTrigger>
+          <TabsTrigger value="flow" className="flex items-center gap-2">
+            <GitFork size={15} />
+            Tournament Flow & Bracket ({bracketMatches.length})
+          </TabsTrigger>
           <TabsTrigger value="moderators" className="flex items-center gap-2">
             <Users size={15} />
             Moderators ({tournament.moderators?.length || 0})
@@ -348,6 +357,35 @@ export default function TournamentManage() {
             onFieldChange={handleFieldChange}
             onSubmit={handleSaveSettings}
           />
+        </TabsContent>
+
+        {/* Tab 2: Tournament Flow & Matches Orchestrator */}
+        <TabsContent value="flow">
+          <Card className="p-6 bg-surface border-line space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl font-display text-snow">
+                  <GitFork size={18} className="text-ember" />
+                  Tournament Flow Orchestrator
+                </CardTitle>
+                <CardDescription>
+                  Interactive bracket canvas for organizers & moderators. Click any match card to update scores, declare winners, and advance participants downstream.
+                </CardDescription>
+              </div>
+              <Badge variant="ember" className="font-mono text-xs">
+                Coordinator Privileges Active
+              </Badge>
+            </div>
+
+            <TournamentBracket
+              matches={bracketMatches}
+              tournamentName={tournament.name}
+              tournamentSlug={tournament.slug}
+              canManage={canManageSettings}
+              defaultView="canvas"
+              onRefresh={refetchBracket}
+            />
+          </Card>
         </TabsContent>
 
         {/* Tab 2: Appointed Moderators */}

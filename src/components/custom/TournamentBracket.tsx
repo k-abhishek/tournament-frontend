@@ -1,6 +1,9 @@
-import React from 'react';
-import { Trophy, Clock, Swords } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trophy, Clock, Swords, Edit3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { TournamentFlowCanvas } from './bracket/TournamentFlowCanvas';
+import { MatchEditorModal } from './bracket/MatchEditorModal';
+import { useBracketStore } from '@/stores/bracketStore';
 
 export interface BracketParticipant {
   id?: string;
@@ -38,19 +41,31 @@ export interface BracketMatch {
   scheduledAt?: string | null;
   completedAt?: string | null;
   notes?: string | null;
+  nextMatchId?: string | null;
 }
 
 interface TournamentBracketProps {
   matches?: BracketMatch[] | any[];
   tournamentName?: string;
+  tournamentSlug?: string;
+  canManage?: boolean;
+  defaultView?: 'canvas' | 'classic';
+  onRefresh?: () => void;
   className?: string;
 }
 
 export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   matches = [],
   tournamentName,
+  tournamentSlug,
+  canManage = false,
+  defaultView = 'canvas',
+  onRefresh,
   className = '',
 }) => {
+  const [viewMode, setViewMode] = useState<'canvas' | 'classic'>(defaultView);
+  const { openMatchModal } = useBracketStore();
+
   if (!matches || matches.length === 0) {
     return (
       <div className="p-12 text-center border border-line rounded-lg bg-surface/50 space-y-3">
@@ -63,7 +78,37 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
     );
   }
 
-  // Group matches by round
+  if (viewMode === 'canvas') {
+    return (
+      <div className={className}>
+        {tournamentName && (
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-line">
+            <div className="flex items-center gap-2">
+              <Swords size={16} className="text-ember" />
+              <span className="font-display text-sm tracking-wider uppercase text-snow">
+                {tournamentName} — Interactive Tournament Flow
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-fog">
+              {matches.length} Total Matches · Pan & Zoom Enabled
+            </span>
+          </div>
+        )}
+
+        <TournamentFlowCanvas
+          matches={matches}
+          tournamentSlug={tournamentSlug}
+          tournamentName={tournamentName}
+          canManage={canManage}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onRefresh={onRefresh}
+        />
+      </div>
+    );
+  }
+
+  // Group matches by round for classic view
   const roundsMap = new Map<number, BracketMatch[]>();
   matches.forEach((m) => {
     const roundNum = m.round || 1;
@@ -86,19 +131,38 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {tournamentName && (
-        <div className="flex items-center justify-between pb-2 border-b border-line">
-          <div className="flex items-center gap-2">
-            <Swords size={16} className="text-ember" />
-            <span className="font-display text-sm tracking-wider uppercase text-snow">
-              {tournamentName} — Tournament Bracket
-            </span>
-          </div>
-          <span className="text-[11px] font-mono text-fog">
-            {matches.length} Total Matches · {sortedRoundNumbers.length} Rounds
+      {/* Top Banner & View Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-line">
+        <div className="flex items-center gap-2">
+          <Swords size={16} className="text-ember" />
+          <span className="font-display text-sm tracking-wider uppercase text-snow">
+            {tournamentName ? `${tournamentName} — ` : ''}Tournament Bracket (Classic View)
           </span>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-surface border border-line p-0.5 rounded-md">
+            <button
+              type="button"
+              onClick={() => setViewMode('canvas')}
+              className="px-2.5 py-1 text-xs font-mono rounded text-fog hover:text-snow transition-colors"
+            >
+              Flow Canvas
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('classic')}
+              className="px-2.5 py-1 text-xs font-mono rounded bg-ember text-snow font-semibold shadow-sm transition-colors"
+            >
+              Classic Grid
+            </button>
+          </div>
+
+          <span className="text-[11px] font-mono text-fog">
+            {matches.length} Matches · {sortedRoundNumbers.length} Rounds
+          </span>
+        </div>
+      </div>
 
       {/* Bracket Tree Canvas */}
       <div className="overflow-x-auto pb-6 pt-2 scrollbar-thin scrollbar-thumb-line scrollbar-track-ink">
@@ -154,7 +218,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                       isCompleted &&
                         (match.winnerId === p1?.id ||
                           (match.score1 !== null &&
+                            match.score1 !== undefined &&
                             match.score2 !== null &&
+                            match.score2 !== undefined &&
                             match.score1 > match.score2))
                     );
 
@@ -162,14 +228,21 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                       isCompleted &&
                         (match.winnerId === p2?.id ||
                           (match.score1 !== null &&
+                            match.score1 !== undefined &&
                             match.score2 !== null &&
+                            match.score2 !== undefined &&
                             match.score2 > match.score1))
                     );
 
                     return (
                       <div
                         key={match.id}
+                        onClick={() => {
+                          if (canManage) openMatchModal(match);
+                        }}
                         className={`relative rounded-md border transition-all duration-200 overflow-hidden shadow-sm ${
+                          canManage ? 'cursor-pointer hover:border-ember/80' : ''
+                        } ${
                           isLive
                             ? 'border-ember bg-surface shadow-[0_0_15px_rgba(255,92,0,0.15)] ring-1 ring-ember/30'
                             : isCompleted
@@ -194,6 +267,13 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                             <span className="flex items-center gap-1 text-fog">
                               <Clock size={10} />
                               SCHEDULED
+                            </span>
+                          )}
+
+                          {canManage && (
+                            <span className="text-ember flex items-center gap-1 text-[9px] font-bold">
+                              <Edit3 size={9} />
+                              EDIT
                             </span>
                           )}
                         </div>
@@ -241,7 +321,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                                   : 'bg-ink text-fog'
                               }`}
                             >
-                              {match.score1 !== null ? match.score1 : '-'}
+                              {match.score1 !== null && match.score1 !== undefined ? match.score1 : '-'}
                             </span>
                           </div>
 
@@ -286,12 +366,12 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
                                   : 'bg-ink text-fog'
                               }`}
                             >
-                              {match.score2 !== null ? match.score2 : '-'}
+                              {match.score2 !== null && match.score2 !== undefined ? match.score2 : '-'}
                             </span>
                           </div>
                         </div>
 
-                        {/* Match Notes / Telemetry */}
+                        {/* Match Notes */}
                         {match.notes && (
                           <div className="px-3 py-1 bg-ink/40 border-t border-line/40 text-[10px] font-mono text-fog truncate">
                             {match.notes}
@@ -306,6 +386,9 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
           })}
         </div>
       </div>
+
+      {/* Match editor modal for classic mode */}
+      <MatchEditorModal tournamentSlug={tournamentSlug} onSuccess={onRefresh} />
     </div>
   );
 };

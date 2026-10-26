@@ -4,6 +4,7 @@ import {
   tournamentTeamApi,
   gameApi,
   userApi,
+  matchApi,
   TournamentListParams,
   UserListParams,
 } from '@/services/api.service';
@@ -545,5 +546,47 @@ export const useTeamRegistration = (tournamentId?: string) => {
     isCreating: registerMutation.isPending,
     isDisbanding: disbandMutation.isPending,
   };
+};
+
+export const useReportMatchResult = (tournamentSlug?: string) => {
+  return useAxiosMutation(
+    ({ matchId, payload }: { matchId: string; payload: Record<string, unknown> }) =>
+      matchApi.reportResult(matchId, payload),
+    {
+      onSuccess: () => {
+        if (tournamentSlug) {
+          invalidateQueries(`bracket:${tournamentSlug}`);
+          invalidateQueries(`tournament:${tournamentSlug}`);
+        }
+        invalidateQueries('bracket');
+        invalidateQueries('tournaments');
+        toast.success('Match result updated!');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error || err.message || 'Failed to report match result');
+      },
+    }
+  );
+};
+
+export const useUpdateMatch = (tournamentSlug?: string) => {
+  return useAxiosMutation(
+    ({ matchId, payload }: { matchId: string; payload: Record<string, unknown> }) =>
+      matchApi.update(matchId, payload),
+    {
+      onSuccess: () => {
+        if (tournamentSlug) {
+          invalidateQueries(`bracket:${tournamentSlug}`);
+          invalidateQueries(`tournament:${tournamentSlug}`);
+        }
+        invalidateQueries('bracket');
+        invalidateQueries('tournaments');
+        toast.success('Match updated successfully!');
+      },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.error || err.message || 'Failed to update match');
+      },
+    }
+  );
 };
 

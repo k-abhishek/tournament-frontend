@@ -14,7 +14,6 @@ import {
   Swords,
   Shield,
   X,
-  Sparkles,
   UserCheck,
 } from "lucide-react";
 import { useTournamentTeams } from "@/hooks/useTournaments";
@@ -29,8 +28,6 @@ interface TournamentTeamsTabProps {
 export function TournamentTeamsTab({
   tournament,
   myTeam,
-  currentUserId,
-  onRegisterClick,
 }: TournamentTeamsTabProps) {
   const { data: teamsData, isLoading } = useTournamentTeams(tournament?.id);
   const teams: any[] = teamsData?.teams || [];
@@ -39,7 +36,6 @@ export function TournamentTeamsTab({
   const [filterType, setFilterType] = useState<"all" | "full" | "my-team">("all");
 
   const teamSize = tournament?.teamSize ?? 5;
-  const maxSlots = teamSize + 1; // Team size + 1 sub
 
   // Total participating players across all teams
   const totalPlayers = useMemo(() => {
@@ -375,7 +371,6 @@ export function TournamentTeamsTab({
                       {/* Other Members */}
                       {nonCaptainMembers.map((member) => {
                         const isPending = member.status === "PENDING";
-                        const isConfirmed = member.status === "ACCEPTED";
 
                         return (
                           <div

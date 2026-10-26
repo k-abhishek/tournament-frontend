@@ -249,7 +249,7 @@ export default function RegisterTeamPage() {
               tournamentName={tournament.name}
               tournamentStatus={tournament.status}
               teamName={createdTeam?.name || teamName}
-              captainUsername={user?.username}
+              captainUsername={user?.username || undefined}
               invitedCount={invitedIds.size}
             />
           )}

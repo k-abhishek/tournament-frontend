@@ -245,7 +245,7 @@ export default function TournamentGrid() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTournaments.map((t) => {
+            {filteredTournaments.map((t: any) => {
               const isOngoing = t.status === 'ONGOING';
               const isOpen = t.status === 'REGISTRATION_OPEN';
               const isCompleted = t.status === 'COMPLETED';

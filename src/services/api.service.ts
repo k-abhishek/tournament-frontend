@@ -123,6 +123,8 @@ export const matchApi = {
     api.get(`/matches/${id}`).then((r) => r.data),
   reportResult: (id: string, payload: Record<string, unknown>) =>
     api.post(`/matches/${id}/result`, payload).then((r) => r.data),
+  update: (id: string, payload: Record<string, unknown>) =>
+    api.patch(`/matches/${id}`, payload).then((r) => r.data),
 };
 
 // ── Notifications ─────────────────────────────────────────────────────

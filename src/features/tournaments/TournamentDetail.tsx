@@ -40,7 +40,7 @@ export default function TournamentDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useUser();
   const { data, isLoading, error } = useTournament(slug);
-  const { data: bracketData } = useBracket(slug);
+  const { data: bracketData, refetch: refetchBracket } = useBracket(slug);
 
   const tournament = data?.tournament;
   const bracketMatches = bracketData?.bracket || [];
@@ -254,7 +254,13 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            <TournamentBracket matches={bracketMatches} tournamentName={tournament.name} />
+            <TournamentBracket
+              matches={bracketMatches}
+              tournamentName={tournament.name}
+              tournamentSlug={tournament.slug}
+              canManage={canManage}
+              onRefresh={refetchBracket}
+            />
           </Card>
         </TabsContent>
 
