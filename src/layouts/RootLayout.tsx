@@ -1,6 +1,7 @@
 import { NavLink as Link, Outlet, useLocation } from "react-router-dom";
-import { Terminal } from "lucide-react";
+import { Network } from "lucide-react";
 import { useEffect } from "react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
 export default function RootLayout() {
   const location = useLocation();
@@ -9,7 +10,7 @@ export default function RootLayout() {
     if (location.hash) {
       const element = document.querySelector(location.hash);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, [location]);
@@ -23,7 +24,7 @@ export default function RootLayout() {
               to="/"
               className="flex items-center gap-2 text-snow font-display text-2xl tracking-wide uppercase hover:text-ember transition-colors"
             >
-              <Terminal size={24} className="text-ember" />
+              <Network size={24} className="text-ember" />
               <span>TourneyHub</span>
             </Link>
 
@@ -56,19 +57,43 @@ export default function RootLayout() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Link
-              to="/sign-in"
-              className="text-sm font-mono uppercase tracking-wider text-fog hover:text-snow transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/sign-in"
-              className="inline-flex items-center justify-center font-display text-lg uppercase tracking-wide bg-ember text-ink hover:bg-ember/90 transition-colors h-10 px-6"
-              style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)' }}
-            >
-              Host a Tournament
-            </Link>
+            <SignedIn>
+              <Link
+                to="/dashboard"
+                className="text-sm font-mono uppercase tracking-wider text-fog hover:text-snow transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/dashboard/tournaments/new"
+                className="inline-flex items-center justify-center font-display text-lg uppercase tracking-wide bg-ember text-ink hover:bg-ember/90 transition-colors h-10 px-6"
+                style={{
+                  clipPath:
+                    "polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)",
+                }}
+              >
+                Host a Tournament
+              </Link>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <Link
+                to="/sign-in"
+                className="text-sm font-mono uppercase tracking-wider text-fog hover:text-snow transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/sign-in"
+                className="inline-flex items-center justify-center font-display text-lg uppercase tracking-wide bg-ember text-ink hover:bg-ember/90 transition-colors h-10 px-6"
+                style={{
+                  clipPath:
+                    "polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)",
+                }}
+              >
+                Host a Tournament
+              </Link>
+            </SignedOut>
           </div>
         </div>
       </header>
@@ -83,9 +108,15 @@ export default function RootLayout() {
             <span className="text-cyan">NEXUS</span> ARENA
           </div>
           <div className="flex gap-6 font-mono text-xs uppercase tracking-widest">
-            <Link to="/docs" className="hover:text-snow transition-colors">Docs</Link>
-            <Link to="/status" className="hover:text-snow transition-colors">Status</Link>
-            <Link to="/terms" className="hover:text-snow transition-colors">Terms</Link>
+            <Link to="/docs" className="hover:text-snow transition-colors">
+              Docs
+            </Link>
+            <Link to="/status" className="hover:text-snow transition-colors">
+              Status
+            </Link>
+            <Link to="/terms" className="hover:text-snow transition-colors">
+              Terms
+            </Link>
           </div>
           <div className="font-mono text-xs text-line">
             © {new Date().getFullYear()} NEXUS ARENA INC.

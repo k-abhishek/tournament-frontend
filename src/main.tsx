@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/clerk-react';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 import App from './App';
 import './index.css';
 
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
         <App />
+        <Toaster />
       </ClerkProvider>
     </BrowserRouter>
   </React.StrictMode>
